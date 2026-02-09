@@ -11,10 +11,10 @@ import json
 from agent_teacher import Teacher
 from llm import LlamaLLM
 from transformers import BertModel, BertTokenizer
-
+from kt import KT
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class KTModel_AKT:
+class KTModel:
     def __init__(self, bert_path=".../bert-master"):
         self.bert = BertModel.from_pretrained(bert_path).to(device)
         self.tokenizer = BertTokenizer.from_pretrained(bert_path)
@@ -71,10 +71,9 @@ class KTModel_AKT:
         }
 
         try:
-            from akt import AKT
-            model = AKT(**model_params).to(device)
+            model = KT(**model_params).to(device)
         except ImportError:
-            model = AKT(**model_params).to(device)
+            model = KT(**model_params).to(device)
 
         # 加载模型权重
         model_path = ".../assist2009_pid/_b24_nb1_gn-1_lr0.0002_s224_sl40_do0.3_dm256_ts1_kq1_l21e-05_8"
@@ -111,7 +110,7 @@ class KTModel_AKT:
 
         return model
 
-    def prepare_input_for_akt(self, exer_ids, kc_log, scores):  # (exer_ids, kc_log, scores)
+    def prepare_input_for_kt(self, exer_ids, kc_log, scores):  # (exer_ids, kc_log, scores)
         q_data = []
         qa_data = []
         pid_data = []
@@ -137,7 +136,7 @@ class KTModel_AKT:
         return q_data, qa_data, pid_data, target
 
     def get_knowledge_state_by_KT(self, exer_ids, kc_log, scores, goalkc_id):  # ques_log, kc_log, ans_log
-        q_data, qa_data, pid_data, target = self.prepare_input_for_akt(exer_ids, kc_log, scores)
+        q_data, qa_data, pid_data, target = self.prepare_input_for_kt(exer_ids, kc_log, scores)
         with torch.no_grad():
             d_output = self.model(q_data, qa_data, target, pid_data)
         learning_state = torch.mean(d_output).item()
